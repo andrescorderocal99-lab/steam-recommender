@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+scraper/.venv/
+.venv/
+
+# Base de datos: games.db SÍ se versiona (GitHub Actions la necesita para refrescar precios).
+# Solo se ignoran los ficheros temporales del modo WAL de SQLite.
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/public/stress-data/
+# frontend/public/data/ SÍ se versiona: Netlify despliega esos JSON tal cual.
+
+# Entorno y temporales
+.env.local
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
