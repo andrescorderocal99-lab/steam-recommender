@@ -59,3 +59,6 @@ export const ImageIcon = (p: IconProps) => (
 export const GamepadIcon = (p: IconProps) => (
   <svg {...base(p)}><path d="M6 9h4M8 7v4M15 10h.01M18 12h.01" /><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15a3 3 0 0 0 5.4 2.1L9 15h6l1.6 2.1A3 3 0 0 0 22 15l-.7-6.4a4 4 0 0 0-4-3.6Z" /></svg>
 )
+export const CoffeeIcon = (p: IconProps) => (
+  <svg {...base(p)}><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z" /><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17" /><path d="M8 3.5c-.6.8-.6 1.7 0 2.5M12 3.5c-.6.8-.6 1.7 0 2.5" /></svg>
+)

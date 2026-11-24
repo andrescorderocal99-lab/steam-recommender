@@ -15,8 +15,18 @@ export function isNativePlatform(): boolean {
  * Capacitor: `await Browser.open({ url })` de '@capacitor/browser'.
  */
 export async function openExternalUrl(url: string): Promise<void> {
-  const win = window.open(url, '_blank', 'noopener,noreferrer')
-  if (!win) window.location.href = url // bloqueador de pop-ups
+  // Ojo: window.open(url, '_blank', 'noopener') devuelve SIEMPRE null según la especificación,
+  // así que no sirve para detectar bloqueadores (provocaba que la pestaña actual navegase también).
+  // Un <a target="_blank"> sintético abre solo la pestaña nueva, conserva noopener/noreferrer
+  // y nunca saca al usuario de la web.
+  const a = document.createElement('a')
+  a.href = url
+  a.target = '_blank'
+  a.rel = 'noopener noreferrer'
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
 }
 
 export const steamStoreUrl = (appId: number) => `https://store.steampowered.com/app/${appId}`

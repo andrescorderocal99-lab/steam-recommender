@@ -4,8 +4,10 @@ import { FilterDrawer } from './components/FilterDrawer'
 import { FilterPanel } from './components/FilterPanel'
 import { GameDetailLoading, GameDetailModal } from './components/GameDetailModal'
 import { GameGrid, GridSkeleton } from './components/GameGrid'
-import { ChevronDownIcon, RefreshIcon, SearchIcon, SlidersIcon, XIcon } from './components/Icons'
+import { ChevronDownIcon, CoffeeIcon, RefreshIcon, SearchIcon, SlidersIcon, XIcon } from './components/Icons'
 import { Segmented } from './components/ui'
+import { openExternalUrl } from './utils/platform'
+import { monetization } from './config/monetization'
 import { useCatalog } from './hooks/useCatalog'
 import { useGameRoute } from './hooks/useGameRoute'
 import { usePersistentState } from './hooks/usePersistentState'
@@ -124,6 +126,17 @@ export default function App() {
               <span>{catalog.count.toLocaleString('es-ES')} juegos{updatedAt && ` · act. ${updatedAt}`}</span>
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => void openExternalUrl(monetization.coffeeUrl)}
+            aria-label="Invítame a un café"
+            title="Invítame a un café"
+            className="flex size-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-400/30 bg-ink-850 text-amber-300 transition hover:border-amber-400/60 hover:bg-amber-400/10 hover:text-amber-200 xl:w-auto xl:px-3.5"
+          >
+            <CoffeeIcon size={18} className="shrink-0" />
+            <span className="hidden text-sm font-semibold whitespace-nowrap xl:inline">Invítame a un café</span>
+          </button>
         </div>
       </header>
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { activeAffiliates, affiliateSearchUrl } from '../config/monetization'
 import { useEscape, useScrollLock } from '../hooks/useScrollLock'
 import { fetchGameDetail } from '../services/gamesService'
 import type { DurationMode, Game, GameDetail } from '../types/game'
@@ -221,6 +222,24 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
             >
               Ver en Steam <ExternalIcon size={18} />
             </button>
+            {activeAffiliates.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1.5 text-xs text-slate-500">Buscar clave más barata:</p>
+                <div className="flex flex-wrap gap-2">
+                  {activeAffiliates.map((store) => (
+                    <button
+                      key={store.key}
+                      type="button"
+                      onClick={() => void openExternalUrl(affiliateSearchUrl(store, game.name))}
+                      className="flex min-h-11 min-w-0 flex-1 basis-32 items-center justify-center gap-1.5 rounded-xl border border-ink-600 bg-ink-800 px-3 text-sm font-semibold text-slate-200 transition hover:border-ink-500 hover:bg-ink-700 hover:text-white active:scale-[0.99]"
+                    >
+                      <span className="truncate">{store.name}</span> <ExternalIcon size={14} className="shrink-0 text-slate-400" />
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-center text-[11px] text-slate-600">Enlace de afiliado · Sin coste extra para ti</p>
+              </div>
+            )}
             {game.priceUpdatedAt && (
               <p className="mt-2 text-center text-[11px] text-slate-500">
                 Precio actualizado el {new Date(game.priceUpdatedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
