@@ -1,6 +1,7 @@
 import type { DurationMode, Game } from '../types/game'
 import { DURATION_MODES } from '../types/game'
 import { formatEph, formatHours } from '../utils/format'
+import { useI18n } from '../i18n'
 import { cx } from './ui'
 
 /** Comparativa de los 3 tiempos de HowLongToBeat con su coste por hora. Pulsar una fila cambia el modo. */
@@ -9,11 +10,12 @@ export function HltbBreakdown({ game, mode, onModeChange }: {
   mode: DurationMode
   onModeChange: (m: DurationMode) => void
 }) {
+  const { t } = useI18n()
   const max = Math.max(...DURATION_MODES.map((m) => game.hltb[m.id] ?? 0), 1)
   const hasAny = DURATION_MODES.some((m) => game.hltb[m.id] != null)
 
   if (!hasAny) {
-    return <p className="rounded-xl bg-ink-800 p-4 text-sm text-slate-400">HowLongToBeat no tiene datos de duración para este juego.</p>
+    return <p className="rounded-xl bg-ink-800 p-4 text-sm text-slate-400">{t.detail.noHltb}</p>
   }
 
   return (
@@ -33,7 +35,7 @@ export function HltbBreakdown({ game, mode, onModeChange }: {
               )}
             >
               <div className="flex items-baseline justify-between gap-2">
-                <span className={cx('text-sm font-semibold', active ? 'text-value' : 'text-slate-300')}>{m.label}</span>
+                <span className={cx('text-sm font-semibold', active ? 'text-value' : 'text-slate-300')}>{t.modes[m.id].label}</span>
                 <span className="text-sm text-slate-400 tabular-nums">{formatHours(hours)}</span>
               </div>
               <div className="mt-2 flex items-center gap-3">

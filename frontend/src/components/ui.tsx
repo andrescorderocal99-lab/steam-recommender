@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react'
+import { useI18n } from '../i18n'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 export { cx }
@@ -89,6 +90,7 @@ export function FilterSection({ title, value, children, onClear }: {
   children: ReactNode
   onClear?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <section className="border-b border-ink-700 py-4 last:border-b-0">
       <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -97,7 +99,7 @@ export function FilterSection({ title, value, children, onClear }: {
           {value != null && <span className="text-sm font-semibold text-white tabular-nums">{value}</span>}
           {onClear && (
             <button type="button" onClick={onClear} className="text-xs text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline">
-              Quitar
+              {t.common.remove}
             </button>
           )}
         </div>

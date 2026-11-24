@@ -1,6 +1,7 @@
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import type { DurationMode, Game } from '../types/game'
+import { useI18n } from '../i18n'
 import { GameCard } from './GameCard'
 
 /** Separación entre tarjetas (px). Debe coincidir con el gap del grid de filas. */
@@ -53,6 +54,7 @@ export function GameGrid({ games, mode, favorites, onOpen, onToggleFavorite }: {
   onOpen: (id: number) => void
   onToggleFavorite: (id: number) => void
 }) {
+  const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   const { width, offsetTop } = useContainerGeometry(containerRef)
   const columns = columnsFor(width)
@@ -76,7 +78,7 @@ export function GameGrid({ games, mode, favorites, onOpen, onToggleFavorite }: {
   const items = virtualizer.getVirtualItems()
 
   return (
-    <div ref={containerRef} role="list" aria-label="Juegos" style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+    <div ref={containerRef} role="list" aria-label={t.results.gamesList} style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
       {width > 0 && items.map((row) => {
         const start = row.index * columns
         const rowGames = games.slice(start, start + columns)
@@ -106,11 +108,12 @@ export function GameGrid({ games, mode, favorites, onOpen, onToggleFavorite }: {
 
 /** Skeleton con la misma geometría que las tarjetas reales (sin saltos al llegar los datos). */
 export function GridSkeleton({ count = 8 }: { count?: number }) {
+  const { t } = useI18n()
   return (
     <div
       className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))]"
       aria-busy="true"
-      aria-label="Cargando catálogo"
+      aria-label={t.results.loadingCatalog}
     >
       {Array.from({ length: count }, (_, i) => <CardSkeleton key={i} />)}
     </div>

@@ -1,10 +1,29 @@
-const priceFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
-const ephFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const numFmt = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 })
+/**
+ * Formateadores dependientes del idioma. `configureFormat` lo llama el I18nProvider al arrancar
+ * y al cambiar de idioma; los componentes que pintan estos textos se re-renderizan por el contexto.
+ */
+let locale = 'es-ES'
+let freeLabel = 'Gratis'
+let noPriceLabel = 'Sin precio'
+let priceFmt = new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' })
+let ephFmt = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+let numFmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+let countFmt = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 })
+
+export function configureFormat(nextLocale: string, free: string, noPrice: string) {
+  freeLabel = free
+  noPriceLabel = noPrice
+  if (nextLocale === locale) return
+  locale = nextLocale
+  priceFmt = new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' })
+  ephFmt = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  numFmt = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+  countFmt = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 })
+}
 
 export function formatPrice(price: number | null, isFree = false): string {
-  if (isFree || price === 0) return 'Gratis'
-  if (price == null) return 'Sin precio'
+  if (isFree || price === 0) return freeLabel
+  if (price == null) return noPriceLabel
   return priceFmt.format(price)
 }
 
@@ -24,7 +43,7 @@ export function formatHours(hours: number | null): string {
 
 export function formatCount(n: number | null): string {
   if (n == null) return ''
-  return new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+  return countFmt.format(n)
 }
 
 export function releaseYear(date: string | null): string | null {

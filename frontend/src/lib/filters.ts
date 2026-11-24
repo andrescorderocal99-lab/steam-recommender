@@ -2,13 +2,8 @@ import type { DurationMode, Game } from '../types/game'
 
 export type SortId = 'eph' | 'hours' | 'price' | 'discount' | 'rating'
 
-export const SORT_OPTIONS: { id: SortId; label: string }[] = [
-  { id: 'eph', label: 'Mejor €/hora' },
-  { id: 'hours', label: 'Más horas' },
-  { id: 'price', label: 'Más baratos' },
-  { id: 'discount', label: 'Mayor descuento' },
-  { id: 'rating', label: 'Mejor valorados' },
-]
+/** Orden en el desplegable; los textos están en los diccionarios (`t.sort[id]`). */
+export const SORT_OPTIONS: SortId[] = ['eph', 'hours', 'price', 'discount', 'rating']
 
 /** Tope visual del slider de horas: el extremo derecho significa "sin límite". */
 export const HOURS_CEIL = 200

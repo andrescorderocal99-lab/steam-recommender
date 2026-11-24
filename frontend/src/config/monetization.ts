@@ -6,6 +6,8 @@
  * Y tiene `id` configurado.
  */
 
+import type { Lang } from '../i18n'
+
 const env = import.meta.env
 
 /** Lee un booleano de entorno ('true'/'1'); si no está definido, usa el valor por defecto. */
@@ -22,8 +24,8 @@ export interface AffiliateStore {
   /** ID de afiliado; vacío = tienda oculta. */
   id: string
   enabled: boolean
-  /** Plantilla de búsqueda con los marcadores {query} y {id}. */
-  searchUrl: string
+  /** Plantilla de búsqueda por idioma, con los marcadores {query} y {id}. */
+  searchUrl: Record<Lang, string>
 }
 
 export const monetization = {
@@ -34,7 +36,10 @@ export const monetization = {
       name: 'Instant Gaming',
       id: env.VITE_INSTANT_GAMING_ID ?? 'gamer-9a5566f',
       enabled: envFlag(env.VITE_INSTANT_GAMING_ENABLED, true),
-      searchUrl: 'https://www.instant-gaming.com/es/busquedas/?query={query}&igr={id}',
+      searchUrl: {
+        en: 'https://www.instant-gaming.com/en/search/?query={query}&igr={id}',
+        es: 'https://www.instant-gaming.com/es/busquedas/?query={query}&igr={id}',
+      },
     },
     {
       // Pendiente de aprobación: pegar el af_id y poner enabled a true.
@@ -42,7 +47,11 @@ export const monetization = {
       name: 'Eneba',
       id: env.VITE_ENEBA_ID ?? '',
       enabled: envFlag(env.VITE_ENEBA_ENABLED, false),
-      searchUrl: 'https://www.eneba.com/es/store/all?text={query}&af_id={id}',
+      searchUrl: {
+        // Eneba sirve el inglés en la raíz, sin prefijo de idioma.
+        en: 'https://www.eneba.com/store/all?text={query}&af_id={id}',
+        es: 'https://www.eneba.com/es/store/all?text={query}&af_id={id}',
+      },
     },
   ] satisfies AffiliateStore[] as AffiliateStore[],
 }
@@ -66,9 +75,9 @@ export function cleanGameName(name: string): string {
     .trim()
 }
 
-/** URL de búsqueda de afiliado para un juego concreto. */
-export function affiliateSearchUrl(store: AffiliateStore, gameName: string): string {
-  return store.searchUrl
+/** URL de búsqueda de afiliado para un juego concreto, en el idioma activo. */
+export function affiliateSearchUrl(store: AffiliateStore, gameName: string, lang: Lang): string {
+  return store.searchUrl[lang]
     .replace('{query}', encodeURIComponent(cleanGameName(gameName)))
     .replace('{id}', encodeURIComponent(store.id.trim()))
 }

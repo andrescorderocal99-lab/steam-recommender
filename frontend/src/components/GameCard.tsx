@@ -4,6 +4,7 @@ import { DURATION_MODES } from '../types/game'
 import { ephTone, formatCount, formatEph, formatHours, formatPrice, ratingTone, releaseYear } from '../utils/format'
 import { prefetchGameDetail } from '../services/gamesService'
 import { ClockIcon, GamepadIcon, HeartIcon, PlayIcon, ThumbIcon } from './Icons'
+import { useI18n } from '../i18n'
 import { cx } from './ui'
 
 const TONE_CLASSES: Record<ReturnType<typeof ephTone>, string> = {
@@ -49,6 +50,7 @@ interface GameCardProps {
 }
 
 export const GameCard = memo(function GameCard({ game, mode, favorite, onOpen, onToggleFavorite }: GameCardProps) {
+  const { t } = useI18n()
   const [imgFailed, setImgFailed] = useState(false)
   const year = releaseYear(game.releaseDate)
 
@@ -78,7 +80,7 @@ export const GameCard = memo(function GameCard({ game, mode, favorite, onOpen, o
         )}
         {game.hasVideo && (
           <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/75 px-1.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
-            <PlayIcon size={11} /> Tráiler
+            <PlayIcon size={11} /> {t.card.trailer}
           </span>
         )}
       </div>
@@ -95,7 +97,7 @@ export const GameCard = memo(function GameCard({ game, mode, favorite, onOpen, o
           </h3>
           <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-slate-500">
             {game.rating != null && (
-              <span className={cx('flex items-center gap-0.5 font-semibold', ratingTone(game.rating))} title={`${game.ratingText ?? ''} · ${game.ratingCount ?? 0} reseñas`}>
+              <span className={cx('flex items-center gap-0.5 font-semibold', ratingTone(game.rating))} title={`${game.ratingText ?? ''} · ${t.card.reviews(game.ratingCount ?? 0)}`}>
                 <ThumbIcon size={12} />{game.rating}%
                 {game.ratingCount ? <span className="font-normal text-slate-500">({formatCount(game.ratingCount)})</span> : null}
               </span>
@@ -113,7 +115,7 @@ export const GameCard = memo(function GameCard({ game, mode, favorite, onOpen, o
         <dl className="grid grid-cols-3 gap-1 rounded-lg bg-ink-800/80 p-1 text-center">
           {DURATION_MODES.map((m) => (
             <div key={m.id} className={cx('rounded-md px-1 py-1', m.id === mode && 'bg-ink-700')}>
-              <dt className={cx('text-[10px] font-semibold tracking-wide uppercase', m.id === mode ? 'text-value' : 'text-slate-500')}>{m.short}</dt>
+              <dt className={cx('text-[10px] font-semibold tracking-wide uppercase', m.id === mode ? 'text-value' : 'text-slate-500')}>{t.modes[m.id].short}</dt>
               <dd className={cx('text-xs font-semibold tabular-nums', m.id === mode ? 'text-white' : 'text-slate-400')}>{formatHours(game.hltb[m.id])}</dd>
             </div>
           ))}
@@ -124,7 +126,7 @@ export const GameCard = memo(function GameCard({ game, mode, favorite, onOpen, o
         type="button"
         onClick={() => onToggleFavorite(game.id)}
         aria-pressed={favorite}
-        aria-label={favorite ? `Quitar ${game.name} de favoritos` : `Añadir ${game.name} a favoritos`}
+        aria-label={favorite ? t.card.removeFavorite(game.name) : t.card.addFavorite(game.name)}
         className={cx(
           'absolute top-1 right-1 z-[2] flex size-11 items-center justify-center rounded-full transition',
           favorite ? 'text-rose-400' : 'text-white/80 opacity-100 hover:text-white sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100',

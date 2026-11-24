@@ -64,8 +64,9 @@ export interface GameDetail {
   hltbName: string | null
 }
 
-export const DURATION_MODES: { id: DurationMode; label: string; short: string }[] = [
-  { id: 'main', label: 'Historia principal', short: 'Principal' },
-  { id: 'extra', label: 'Con secundarias', short: '+Secund.' },
-  { id: 'completionist', label: 'Completista', short: 'Completista' },
+/** Los textos de cada modo viven en los diccionarios (`t.modes[id]`). */
+export const DURATION_MODES: { id: DurationMode }[] = [
+  { id: 'main' },
+  { id: 'extra' },
+  { id: 'completionist' },
 ]

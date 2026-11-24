@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DEFAULT_FILTERS, HOURS_CEIL, type CatalogStats, type FilterState } from '../lib/filters'
 import { DURATION_MODES } from '../types/game'
+import { useI18n } from '../i18n'
 import { formatPrice } from '../utils/format'
 import { Chip, FilterSection, RangeSlider, Segmented, Slider, Switch } from './ui'
 
@@ -11,8 +12,6 @@ const HOURS_PRESETS = [20, 50, 100]
 const RATING_PRESETS = [0, 70, 80, 90]
 const GENRES_COLLAPSED = 10
 
-const eurFmt = (v: number) => `${v.toLocaleString('es-ES', { maximumFractionDigits: 2 })} €`
-const ephLabel = (v: number) => `< ${v.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €/h`
 
 export interface FilterPanelProps {
   filters: FilterState
@@ -23,19 +22,22 @@ export interface FilterPanelProps {
 }
 
 export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount }: FilterPanelProps) {
+  const { t, locale } = useI18n()
   const [showAllGenres, setShowAllGenres] = useState(false)
+  const eurFmt = (v: number) => `${v.toLocaleString(locale, { maximumFractionDigits: 2 })} €`
+  const ephLabel = (v: number) => `< ${v.toLocaleString(locale, { minimumFractionDigits: 2 })} €/h`
   const ceil = stats.priceCeil
   const priceHi = f.priceMax ?? ceil
   const hoursHi = f.hoursMax ?? HOURS_CEIL
   const ephIndex = f.maxEph == null ? EPH_ANY : Math.max(0, EPH_STEPS.findIndex((s) => s >= f.maxEph!))
-  const modeLabel = DURATION_MODES.find((m) => m.id === f.mode)!.label.toLowerCase()
+  const modeLabel = t.modes[f.mode].label
 
   const priceText = f.priceMin === 0 && f.priceMax == null
-    ? 'Cualquiera'
+    ? t.common.any
     : `${f.priceMin === 0 ? formatPrice(0) : eurFmt(f.priceMin)} – ${f.priceMax == null ? `${ceil} €+` : eurFmt(f.priceMax)}`
   const hoursText = f.hoursMin === 0 && f.hoursMax == null
-    ? 'Cualquiera'
-    : f.hoursMax == null ? `${f.hoursMin} h o más` : `${f.hoursMin} – ${f.hoursMax} h`
+    ? t.common.any
+    : f.hoursMax == null ? t.filters.hoursOrMore(f.hoursMin) : `${f.hoursMin} – ${f.hoursMax} h`
 
   const genres = showAllGenres ? stats.genres : stats.genres.slice(0, GENRES_COLLAPSED)
   // Mantén visibles los géneros seleccionados aunque estén plegados.
@@ -46,72 +48,72 @@ export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount 
 
   return (
     <div className="flex flex-col">
-      <FilterSection title="Duración">
+      <FilterSection title={t.filters.duration}>
         <Segmented
-          label="Modo de duración"
+          label={t.filters.durationMode}
           size="sm"
-          options={DURATION_MODES.map((m) => ({ id: m.id, label: m.short }))}
+          options={DURATION_MODES.map((m) => ({ id: m.id, label: t.modes[m.id].short }))}
           value={f.mode}
           onChange={(mode) => onChange({ mode })}
         />
         <p className="mt-2 text-xs text-slate-500">
-          Las horas y el €/h se calculan con la {modeLabel} según HowLongToBeat.
+          {t.filters.durationHint(modeLabel)}
         </p>
       </FilterSection>
 
       <FilterSection
-        title="Precio"
+        title={t.filters.price}
         value={priceText}
         onClear={f.priceMin > 0 || f.priceMax != null ? () => onChange({ priceMin: 0, priceMax: null }) : undefined}
       >
         <RangeSlider
           min={0} max={ceil} step={0.5}
           value={[f.priceMin, priceHi]}
-          labels={['Precio mínimo', 'Precio máximo']}
+          labels={[t.filters.priceMin, t.filters.priceMax]}
           onChange={([lo, hi]) => onChange({ priceMin: lo, priceMax: hi >= ceil ? null : hi })}
         />
         <div className="mt-2 flex flex-wrap gap-2">
-          <Chip active={f.onSaleOnly} onClick={() => onChange({ onSaleOnly: !f.onSaleOnly })}>Solo en oferta</Chip>
+          <Chip active={f.onSaleOnly} onClick={() => onChange({ onSaleOnly: !f.onSaleOnly })}>{t.filters.onSaleOnly}</Chip>
           {[10, 5].map((cap) => (
             <Chip key={cap} active={f.priceMax === cap && f.priceMin === 0}
               onClick={() => onChange(f.priceMax === cap ? { priceMax: null } : { priceMin: 0, priceMax: cap })}>
-              Menos de {cap} €
+              {t.filters.under(cap)}
             </Chip>
           ))}
         </div>
-        <Switch checked={f.includeFree} onChange={(includeFree) => onChange({ includeFree })} label="Incluir gratuitos" />
+        <Switch checked={f.includeFree} onChange={(includeFree) => onChange({ includeFree })} label={t.filters.includeFree} />
       </FilterSection>
 
       <FilterSection
-        title="Horas de juego"
+        title={t.filters.hours}
         value={hoursText}
         onClear={f.hoursMin > 0 || f.hoursMax != null ? () => onChange({ hoursMin: 0, hoursMax: null }) : undefined}
       >
         <RangeSlider
           min={0} max={HOURS_CEIL} step={1}
           value={[f.hoursMin, hoursHi]}
-          labels={['Horas mínimas', 'Horas máximas']}
+          labels={[t.filters.hoursMin, t.filters.hoursMax]}
           onChange={([lo, hi]) => onChange({ hoursMin: lo, hoursMax: hi >= HOURS_CEIL ? null : hi })}
         />
         <div className="mt-2 flex flex-wrap gap-2">
           {HOURS_PRESETS.map((h) => (
             <Chip key={h} active={f.hoursMin === h && f.hoursMax == null}
               onClick={() => onChange(f.hoursMin === h && f.hoursMax == null ? { hoursMin: 0 } : { hoursMin: h, hoursMax: null })}>
-              {h === 100 ? '+100 h' : `Mín. ${h} h`}
+              {h === 100 ? '+100 h' : t.filters.hoursPresetMin(h)}
             </Chip>
           ))}
         </div>
       </FilterSection>
 
       <FilterSection
-        title="Máximo €/hora"
-        value={f.maxEph == null ? 'Cualquiera' : ephLabel(f.maxEph)}
+        title={t.filters.maxEph}
+        value={f.maxEph == null ? t.common.any : ephLabel(f.maxEph)}
         onClear={f.maxEph != null ? () => onChange({ maxEph: null }) : undefined}
       >
         <Slider
           min={0} max={EPH_ANY} step={1}
           value={ephIndex}
-          label="Ratio máximo euros por hora"
+          label={t.filters.maxEphLabel}
           onChange={(i) => onChange({ maxEph: i >= EPH_ANY ? null : EPH_STEPS[i] })}
         />
         <div className="mt-2 flex flex-wrap gap-2">
@@ -123,11 +125,11 @@ export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount 
         </div>
       </FilterSection>
 
-      <FilterSection title="Valoración en Steam" value={f.minRating ? `≥ ${f.minRating}%` : 'Cualquiera'}>
+      <FilterSection title={t.filters.rating} value={f.minRating ? `≥ ${f.minRating}%` : t.common.any}>
         <div className="flex flex-wrap gap-2">
           {RATING_PRESETS.map((r) => (
             <Chip key={r} active={f.minRating === r} onClick={() => onChange({ minRating: r })}>
-              {r === 0 ? 'Cualquiera' : `≥ ${r}%`}
+              {r === 0 ? t.common.any : `≥ ${r}%`}
             </Chip>
           ))}
         </div>
@@ -135,8 +137,8 @@ export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount 
 
       {stats.genres.length > 0 && (
         <FilterSection
-          title="Géneros"
-          value={f.genres.length ? `${f.genres.length} seleccionados` : undefined}
+          title={t.filters.genres}
+          value={f.genres.length ? t.filters.genresSelected(f.genres.length) : undefined}
           onClear={f.genres.length ? () => onChange({ genres: [] }) : undefined}
         >
           <div className="flex flex-wrap gap-2">
@@ -149,21 +151,21 @@ export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount 
           {stats.genres.length > GENRES_COLLAPSED && (
             <button type="button" onClick={() => setShowAllGenres((v) => !v)}
               className="mt-2 min-h-9 text-sm font-medium text-value hover:underline pointer-coarse:min-h-11">
-              {showAllGenres ? 'Ver menos' : `Ver los ${stats.genres.length} géneros`}
+              {showAllGenres ? t.filters.showLess : t.filters.showAllGenres(stats.genres.length)}
             </button>
           )}
-          {f.genres.length > 1 && <p className="mt-1 text-xs text-slate-500">Se muestran juegos con cualquiera de los géneros elegidos.</p>}
+          {f.genres.length > 1 && <p className="mt-1 text-xs text-slate-500">{t.filters.genresHint}</p>}
         </FilterSection>
       )}
 
-      <FilterSection title="Otros">
+      <FilterSection title={t.filters.other}>
         <Switch
           checked={f.hideWithoutHours}
           onChange={(hideWithoutHours) => onChange({ hideWithoutHours })}
-          label="Ocultar juegos sin duración"
-          hint="Juegos sin datos de HowLongToBeat"
+          label={t.filters.hideWithoutHours}
+          hint={t.filters.hideWithoutHoursHint}
         />
-        <Switch checked={f.favoritesOnly} onChange={(favoritesOnly) => onChange({ favoritesOnly })} label="Solo mis favoritos" />
+        <Switch checked={f.favoritesOnly} onChange={(favoritesOnly) => onChange({ favoritesOnly })} label={t.filters.favoritesOnly} />
       </FilterSection>
 
       <button
@@ -172,7 +174,7 @@ export function FilterPanel({ filters: f, stats, onChange, onReset, activeCount 
         disabled={activeCount === 0 && f.mode === DEFAULT_FILTERS.mode}
         className="mt-2 min-h-11 rounded-xl border border-ink-600 text-sm font-semibold text-slate-300 transition-colors hover:bg-ink-700 hover:text-white disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent"
       >
-        Restablecer filtros
+        {t.common.resetFilters}
       </button>
     </div>
   )

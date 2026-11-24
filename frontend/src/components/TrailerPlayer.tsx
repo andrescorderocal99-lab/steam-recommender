@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type Hls from 'hls.js'
+import { useI18n } from '../i18n'
 import type { Movie } from '../types/game'
 
 type PlaybackMode = 'file' | 'native-hls' | 'hlsjs' | 'unsupported'
@@ -24,6 +25,7 @@ export function TrailerPlayer({ movie, autoPlay = false, onUnavailable }: {
   autoPlay?: boolean
   onUnavailable?: () => void
 }) {
+  const { t } = useI18n()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [mode, setMode] = useState<PlaybackMode | null>(null)
@@ -77,16 +79,16 @@ export function TrailerPlayer({ movie, autoPlay = false, onUnavailable }: {
             recovered = true
             hls.startLoad()
           } else {
-            fail('No se pudo cargar el tráiler.')
+            fail(t.media.trailerLoadError)
           }
         })
       } else if (m === 'unsupported') {
-        fail('Tu navegador no puede reproducir este tráiler.')
+        fail(t.media.trailerUnsupported)
       }
       if (autoPlay && m !== 'unsupported') video.play().catch(() => { /* autoplay bloqueado: el usuario pulsará play */ })
     }
 
-    setup().catch(() => fail('No se pudo cargar el reproductor.'))
+    setup().catch(() => fail(t.media.playerLoadError))
 
     return () => {
       cancelled = true
@@ -109,8 +111,8 @@ export function TrailerPlayer({ movie, autoPlay = false, onUnavailable }: {
         preload="none"
         controlsList="nodownload"
         disablePictureInPicture={false}
-        onError={() => mode === 'native-hls' || mode === 'file' ? setError('No se pudo cargar el tráiler.') : undefined}
-        aria-label={movie.name ?? 'Tráiler'}
+        onError={() => mode === 'native-hls' || mode === 'file' ? setError(t.media.trailerLoadError) : undefined}
+        aria-label={movie.name ?? t.media.trailer}
       />
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 p-6 text-center text-sm text-slate-300">

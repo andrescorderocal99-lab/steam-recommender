@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { activeAffiliates, affiliateSearchUrl } from '../config/monetization'
 import { useEscape, useScrollLock } from '../hooks/useScrollLock'
+import { useI18n } from '../i18n'
 import { fetchGameDetail } from '../services/gamesService'
 import type { DurationMode, Game, GameDetail } from '../types/game'
-import { DURATION_MODES } from '../types/game'
 import { formatCount, ratingTone } from '../utils/format'
 import { hltbUrl, openExternalUrl, steamStoreUrl } from '../utils/platform'
 import { EphBadge, PriceTag } from './GameCard'
@@ -24,6 +24,7 @@ function DetailShell({ title, onClose, headerAction, scrollKey, children }: {
   scrollKey?: number
   children: ReactNode
 }) {
+  const { t } = useI18n()
   const dialogRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   useScrollLock(true)
@@ -52,7 +53,7 @@ function DetailShell({ title, onClose, headerAction, scrollKey, children }: {
         className="relative flex w-full max-w-6xl animate-pop-in flex-col overflow-hidden bg-ink-900 shadow-2xl shadow-black outline-none sm:max-h-full sm:rounded-2xl sm:border sm:border-ink-700"
       >
         <header className="z-10 flex items-center gap-2 border-b border-ink-700 bg-ink-900/95 px-2 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 backdrop-blur sm:px-3">
-          <button type="button" onClick={onClose} aria-label="Cerrar" className="flex size-11 shrink-0 items-center justify-center rounded-full text-slate-300 hover:bg-ink-700 hover:text-white">
+          <button type="button" onClick={onClose} aria-label={t.common.close} className="flex size-11 shrink-0 items-center justify-center rounded-full text-slate-300 hover:bg-ink-700 hover:text-white">
             <XIcon />
           </button>
           <h2 id="game-detail-title" className="min-w-0 flex-1 truncate text-base font-bold text-white sm:text-lg">{title}</h2>
@@ -99,12 +100,13 @@ const SectionTitle = ({ children }: { children: ReactNode }) => (
 
 /** Detalle completo en esqueleto: enlace directo a #/app/{id} mientras llega el catálogo. */
 export function GameDetailLoading({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n()
   return (
     <DetailShell title={<Bone className="h-5 w-48" />} onClose={onClose}>
-      <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]" aria-busy="true" aria-label="Cargando juego">
+      <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]" aria-busy="true" aria-label={t.detail.loadingGame}>
         <div className="flex min-w-0 flex-col gap-5">
           <MediaSkeleton />
-          <div className="space-y-2"><SectionTitle>Descripción</SectionTitle><DescriptionSkeleton /></div>
+          <div className="space-y-2"><SectionTitle>{t.detail.description}</SectionTitle><DescriptionSkeleton /></div>
         </div>
         <aside className="flex flex-col gap-5">
           <div className="space-y-4 rounded-2xl border border-ink-700 bg-ink-850 p-4">
@@ -137,6 +139,7 @@ interface Props {
  * pesada (media, descripción, editor) espera a details/{id}.json, con su propio skeleton.
  */
 export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorite, onModeChange }: Props) {
+  const { t, lang, locale } = useI18n()
   const [detail, setDetail] = useState<GameDetail | null>(null)
   const [error, setError] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -152,14 +155,14 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
   }, [game.id, attempt])
 
   const openSteam = useCallback(() => void openExternalUrl(steamStoreUrl(game.id)), [game.id])
-  const modeLabel = DURATION_MODES.find((m) => m.id === mode)!.label
+  const modeLabel = t.modes[mode].label
 
   const favoriteButton = (
     <button
       type="button"
       onClick={() => onToggleFavorite(game.id)}
       aria-pressed={favorite}
-      aria-label={favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+      aria-label={favorite ? t.detail.removeFavorite : t.detail.addFavorite}
       className={cx('flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-ink-700', favorite ? 'text-rose-400' : 'text-slate-300 hover:text-white')}
     >
       <HeartIcon filled={favorite} />
@@ -179,9 +182,9 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
             <MediaGallery movies={detail.movies} screenshots={detail.screenshots} fallbackImage={game.header} title={game.name} />
           ) : error ? (
             <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl bg-ink-800 p-6 text-center">
-              <p className="text-sm text-slate-400">No se pudieron cargar los vídeos y capturas.</p>
+              <p className="text-sm text-slate-400">{t.detail.mediaError}</p>
               <button type="button" onClick={() => setAttempt((n) => n + 1)} className="flex min-h-11 items-center gap-2 rounded-xl bg-ink-700 px-4 text-sm font-semibold text-white hover:bg-ink-600">
-                <RefreshIcon size={16} /> Reintentar
+                <RefreshIcon size={16} /> {t.common.retry}
               </button>
             </div>
           ) : (
@@ -189,9 +192,9 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
           )}
 
           <section className="space-y-2">
-            <SectionTitle>Descripción</SectionTitle>
+            <SectionTitle>{t.detail.description}</SectionTitle>
             {detail ? (
-              <p className="leading-relaxed text-slate-300">{detail.shortDescription || 'Sin descripción disponible.'}</p>
+              <p className="leading-relaxed text-slate-300">{detail.shortDescription || t.detail.noDescription}</p>
             ) : !error && <DescriptionSkeleton />}
           </section>
 
@@ -218,40 +221,44 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
             <button
               type="button"
               onClick={openSteam}
+              data-umami-event="click-steam"
+              data-umami-event-game={game.name}
               className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-value-strong px-4 font-bold text-ink-950 transition hover:bg-value active:scale-[0.99]"
             >
-              Ver en Steam <ExternalIcon size={18} />
+              {t.detail.viewOnSteam} <ExternalIcon size={18} />
             </button>
             {activeAffiliates.length > 0 && (
               <div className="mt-3">
-                <p className="mb-1.5 text-xs text-slate-500">Buscar clave más barata:</p>
+                <p className="mb-1.5 text-xs text-slate-500">{t.detail.cheaperKey}</p>
                 <div className="flex flex-wrap gap-2">
                   {activeAffiliates.map((store) => (
                     <button
                       key={store.key}
                       type="button"
-                      onClick={() => void openExternalUrl(affiliateSearchUrl(store, game.name))}
+                      onClick={() => void openExternalUrl(affiliateSearchUrl(store, game.name, lang))}
+                      data-umami-event={`click-${store.key}`}
+                      data-umami-event-game={game.name}
                       className="flex min-h-11 min-w-0 flex-1 basis-32 items-center justify-center gap-1.5 rounded-xl border border-ink-600 bg-ink-800 px-3 text-sm font-semibold text-slate-200 transition hover:border-ink-500 hover:bg-ink-700 hover:text-white active:scale-[0.99]"
                     >
                       <span className="truncate">{store.name}</span> <ExternalIcon size={14} className="shrink-0 text-slate-400" />
                     </button>
                   ))}
                 </div>
-                <p className="mt-1.5 text-center text-[11px] text-slate-600">Enlace de afiliado · Sin coste extra para ti</p>
+                <p className="mt-1.5 text-center text-[11px] text-slate-600">{t.detail.affiliateNote}</p>
               </div>
             )}
             {game.priceUpdatedAt && (
               <p className="mt-2 text-center text-[11px] text-slate-500">
-                Precio actualizado el {new Date(game.priceUpdatedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                {t.detail.priceUpdated(new Date(game.priceUpdatedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}
               </p>
             )}
           </div>
 
           <section>
             <div className="mb-2 flex items-baseline justify-between">
-              <SectionTitle>Duración y coste por hora</SectionTitle>
+              <SectionTitle>{t.detail.durationTitle}</SectionTitle>
               {detail?.hltbId && (
-                <button type="button" onClick={() => void openExternalUrl(hltbUrl(detail.hltbId!))} className="text-xs text-slate-500 hover:text-slate-300 hover:underline">
+                <button type="button" onClick={() => void openExternalUrl(hltbUrl(detail.hltbId!))} data-umami-event="click-hltb" className="text-xs text-slate-500 hover:text-slate-300 hover:underline">
                   HowLongToBeat ↗
                 </button>
               )}
@@ -261,7 +268,7 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
 
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-2xl border border-ink-700 bg-ink-850 p-4 text-sm">
             {game.rating != null && (
-              <Row label="Valoración">
+              <Row label={t.detail.rating}>
                 <span className={cx('inline-flex items-center gap-1 font-semibold', ratingTone(game.rating))}>
                   <ThumbIcon size={14} /> {game.rating}%
                 </span>
@@ -269,13 +276,13 @@ export function GameDetailModal({ game, mode, favorite, onClose, onToggleFavorit
               </Row>
             )}
             {game.metacritic != null && <Row label="Metacritic">{game.metacritic}</Row>}
-            <Row label="Desarrollador">{detail?.developers.join(', ') || game.developer || '—'}</Row>
-            <Row label="Editor">
+            <Row label={t.detail.developer}>{detail?.developers.join(', ') || game.developer || '—'}</Row>
+            <Row label={t.detail.publisher}>
               {detail ? (detail.publishers.join(', ') || '—') : error ? '—' : <Bone className="mt-0.5 h-4 w-28" />}
             </Row>
-            <Row label="Lanzamiento">
+            <Row label={t.detail.release}>
               {game.releaseDate && game.releaseDate.length === 10
-                ? new Date(game.releaseDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+                ? new Date(game.releaseDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
                 : detail?.releaseDateRaw || game.releaseDate || '—'}
             </Row>
           </dl>

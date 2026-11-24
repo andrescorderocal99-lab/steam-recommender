@@ -1,4 +1,4 @@
-# Euro por Hora
+# CostXHour
 
 Catálogo web (sin registro) para descubrir juegos de Steam **baratos y con muchas horas de contenido**: filtra por precio, duración según HowLongToBeat y **euros por hora** (€/h).
 

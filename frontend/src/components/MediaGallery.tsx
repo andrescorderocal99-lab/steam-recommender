@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Movie, Screenshot } from '../types/game'
 import { ChevronLeftIcon, ChevronRightIcon, ImageIcon, PlayIcon } from './Icons'
 import { TrailerPlayer } from './TrailerPlayer'
+import { useI18n } from '../i18n'
 import { cx } from './ui'
 
 type Item = { kind: 'movie'; movie: Movie } | { kind: 'shot'; shot: Screenshot }
@@ -16,6 +17,7 @@ export function MediaGallery({ movies, screenshots, fallbackImage, title }: {
   fallbackImage: string | null
   title: string
 }) {
+  const { t } = useI18n()
   const items: Item[] = [
     ...movies.map((movie) => ({ kind: 'movie' as const, movie })),
     ...screenshots.map((shot) => ({ kind: 'shot' as const, shot })),
@@ -84,7 +86,7 @@ export function MediaGallery({ movies, screenshots, fallbackImage, title }: {
           <img
             key={current.shot.full}
             src={current.shot.full}
-            alt={`Captura de ${title}`}
+            alt={t.media.screenshotOf(title)}
             className="size-full animate-fade-in object-contain"
             decoding="async"
           />
@@ -101,10 +103,10 @@ export function MediaGallery({ movies, screenshots, fallbackImage, title }: {
       </div>
 
       {count > 1 && (
-        <div ref={stripRef} className="no-scrollbar -mx-1 flex snap-x gap-2 overflow-x-auto px-1 py-1" role="tablist" aria-label="Tráileres y capturas">
+        <div ref={stripRef} className="no-scrollbar -mx-1 flex snap-x gap-2 overflow-x-auto px-1 py-1" role="tablist" aria-label={t.media.stripLabel}>
           {items.map((it, i) => {
             const thumb = it.kind === 'movie' ? it.movie.thumbnail : it.shot.thumb
-            const label = it.kind === 'movie' ? (it.movie.name ?? `Tráiler ${i + 1}`) : `Captura ${i - movies.length + 1}`
+            const label = it.kind === 'movie' ? (it.movie.name ?? t.media.trailerN(i + 1)) : t.media.screenshotN(i - movies.length + 1)
             return (
               <button
                 key={i}
@@ -136,11 +138,12 @@ export function MediaGallery({ movies, screenshots, fallbackImage, title }: {
 }
 
 function NavButton({ side, onClick }: { side: 'left' | 'right'; onClick: () => void }) {
+  const { t } = useI18n()
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={side === 'left' ? 'Anterior' : 'Siguiente'}
+      aria-label={side === 'left' ? t.media.previous : t.media.next}
       className={cx(
         'absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur transition hover:bg-black/80',
         side === 'left' ? 'left-2' : 'right-2',
