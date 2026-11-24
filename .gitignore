@@ -22,3 +22,9 @@ frontend/public/stress-data/
 *.log
 .DS_Store
 Thumbs.db
+
+# Marketing: vídeos y temporales generados (nunca a GitHub)
+marketing/output/
+marketing/temp/
+marketing/.venv/
+marketing/.env
