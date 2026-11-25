@@ -7,8 +7,6 @@ interface ImportMetaEnv {
   readonly VITE_COFFEE_URL?: string
   readonly VITE_INSTANT_GAMING_ID?: string
   readonly VITE_INSTANT_GAMING_ENABLED?: string
-  readonly VITE_ENEBA_ID?: string
-  readonly VITE_ENEBA_ENABLED?: string
 }
 
 interface ImportMeta {

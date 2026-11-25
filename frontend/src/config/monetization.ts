@@ -29,7 +29,7 @@ export interface AffiliateStore {
 }
 
 export const monetization = {
-  coffeeUrl: env.VITE_COFFEE_URL || 'https://ko-fi.com/europorhora',
+  coffeeUrl: env.VITE_COFFEE_URL || 'https://ko-fi.com/costxhour',
   affiliates: [
     {
       key: 'instant-gaming',
@@ -39,18 +39,6 @@ export const monetization = {
       searchUrl: {
         en: 'https://www.instant-gaming.com/en/search/?query={query}&igr={id}',
         es: 'https://www.instant-gaming.com/es/busquedas/?query={query}&igr={id}',
-      },
-    },
-    {
-      // Pendiente de aprobación: pegar el af_id y poner enabled a true.
-      key: 'eneba',
-      name: 'Eneba',
-      id: env.VITE_ENEBA_ID ?? '',
-      enabled: envFlag(env.VITE_ENEBA_ENABLED, false),
-      searchUrl: {
-        // Eneba sirve el inglés en la raíz, sin prefijo de idioma.
-        en: 'https://www.eneba.com/store/all?text={query}&af_id={id}',
-        es: 'https://www.eneba.com/es/store/all?text={query}&af_id={id}',
       },
     },
   ] satisfies AffiliateStore[] as AffiliateStore[],

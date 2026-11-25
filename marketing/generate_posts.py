@@ -3,6 +3,7 @@
 Uso:
     python marketing/generate_posts.py
     python marketing/generate_posts.py --min-discount 40
+    python marketing/generate_posts.py --min-reviews 500     # incluir juegos menos conocidos
 
 Salida: marketing/output/posts_YYYY-MM-DD.md (3 borradores listos para copiar y pegar).
 """
@@ -125,7 +126,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Borradores semanales para Reddit/foros")
     ap.add_argument("--min-discount", type=int, default=30)
     ap.add_argument("--min-rating", type=int, default=80)
-    ap.add_argument("--min-reviews", type=int, default=200)
+    ap.add_argument("--min-reviews", type=int, default=1500,
+                    help="mínimo de reseñas en Steam (juegos más reconocibles)")
     args = ap.parse_args()
 
     games, meta = load_games()
