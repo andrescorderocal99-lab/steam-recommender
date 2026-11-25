@@ -29,7 +29,7 @@ export interface AffiliateStore {
 }
 
 export const monetization = {
-  coffeeUrl: env.VITE_COFFEE_URL || 'https://ko-fi.com/costxhour',
+  coffeeUrl: env.VITE_COFFEE_URL || 'https://ko-fi.com/europorhora',
   affiliates: [
     {
       key: 'instant-gaming',
