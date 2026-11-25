@@ -1,0 +1,107 @@
+name: Generar vídeos cortos (diario)
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # 08:00 UTC = 09:00 (invierno) / 10:00 (verano) en España
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "Tema del vídeo (auto = rota según el día del año)"
+        required: false
+        default: auto
+        type: choice
+        options:
+          - auto
+          - under5
+          - pennies
+          - hidden
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-videos
+  cancel-in-progress: false
+
+env:
+  DRIVE_FOLDER: "CostXHour Videos"
+
+jobs:
+  videos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Elegir tema
+        id: theme
+        env:
+          INPUT_THEME: ${{ inputs.theme || 'auto' }}
+        run: |
+          theme="$INPUT_THEME"
+          if [ "$theme" = "auto" ]; then
+            themes=(under5 pennies hidden)
+            doy=$((10#$(date -u +%j)))
+            theme="${themes[$((doy % 3))]}"
+          fi
+          echo "Tema: $theme"
+          echo "theme=$theme" >> "$GITHUB_OUTPUT"
+
+      - name: Instalar ffmpeg, fuentes y rclone
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: marketing/requirements.txt
+
+      - name: Instalar dependencias
+        run: pip install -r marketing/requirements.txt
+
+      - name: Generar vídeos (EN + ES)
+        run: python marketing/generate_video.py --theme ${{ steps.theme.outputs.theme }} --lang both
+
+      - name: Configurar rclone
+        env:
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          if [ -z "$RCLONE_CONFIG_CONTENT" ]; then
+            echo "::error::Falta el secreto RCLONE_CONFIG"
+            exit 1
+          fi
+          mkdir -p ~/.config/rclone
+          printf '%s\n' "$RCLONE_CONFIG_CONTENT" > ~/.config/rclone/rclone.conf
+          chmod 600 ~/.config/rclone/rclone.conf
+
+      - name: Subir a Google Drive
+        run: |
+          ls -la marketing/output
+          rclone copy marketing/output "gdrive_en:$DRIVE_FOLDER" \
+            --include "*_en.mp4" --include "*_en.txt" -v
+          rclone copy marketing/output "gdrive_es:$DRIVE_FOLDER" \
+            --include "*_es.mp4" --include "*_es.txt" -v
+
+      - name: Limpiar archivos de más de 15 días en Drive
+        run: |
+          rclone delete "gdrive_en:$DRIVE_FOLDER" --min-age 15d -v
+          rclone delete "gdrive_es:$DRIVE_FOLDER" --min-age 15d -v
+
+      - name: Commit y push de used_games.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add marketing/used_games.json
+          if git diff --cached --quiet; then
+            echo "used_games.json sin cambios."
+            exit 0
+          fi
+          git commit -m "chore: update used games for daily videos"
+          # Otros workflows (precios) también hacen push: rebase antes de subir.
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push

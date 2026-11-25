@@ -40,6 +40,30 @@ Los juegos usados se guardan en `used_games.json` y no se repiten en los 10 víd
 Opciones útiles: `--dry-run` (solo ver juegos y guion), `--seed 42`, `--voice en-US-SteffanNeural`,
 `--voice-es es-ES-ElviraNeural`, `--no-history`, `--keep-temp`.
 
+## Vídeos diarios automáticos (GitHub Actions)
+
+`.github/workflows/daily-videos.yml` se ejecuta cada día a las 08:00 UTC (9:00 en invierno / 10:00 en
+verano en España) y también a mano desde *Actions → Generar vídeos cortos (diario) → Run workflow*,
+con el input `theme` (`auto`, `under5`, `pennies`, `hidden`). Con `auto` el tema rota según el día del
+año (`día % 3` → `under5`, `pennies`, `hidden`).
+
+Pasos: instala `ffmpeg`, Python y `rclone`, ejecuta `generate_video.py --lang both`, sube
+`*_en.mp4`/`*_en.txt` a `gdrive_en:CostXHour Videos` y `*_es.mp4`/`*_es.txt` a
+`gdrive_es:CostXHour Videos`, borra de ambas carpetas lo que tenga más de 15 días y hace commit de
+`used_games.json` (si cambió) para no repetir juegos.
+
+**Secreto `RCLONE_CONFIG`** (*Settings → Secrets and variables → Actions*): el contenido completo de
+un `rclone.conf` con dos remotes de Google Drive llamados exactamente `gdrive_en` y `gdrive_es`
+(una cuenta por idioma). Para crearlo en local:
+
+```powershell
+rclone config            # n → nombre gdrive_en → tipo drive → autoriza en el navegador; repite con gdrive_es
+rclone config file       # muestra la ruta del rclone.conf; pega su contenido en el secreto
+```
+
+El token incluye un *refresh token*, así que no caduca mientras no revoques el acceso. Es una
+credencial: no la subas nunca al repo.
+
 ## Posts semanales (Reddit / foros)
 
 ```powershell
